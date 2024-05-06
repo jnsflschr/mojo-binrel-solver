@@ -54,23 +54,23 @@ fn debug(c: RelationList):
     # print(sorted_c)
 
 
-def test_functions():
+fn test_functions():
     alias r: RelationList = RelationList(List((1, 4), (3, 1), (4, 2), (4, 4)))
     alias s: RelationList = RelationList(List((1, 3), (1, 4), (3, 1), (3, 3)))
 
-    union_result = union(r, s)
+    var union_result = union(r, s)
     debug_assert(
         union_result
         == RelationList(List((1, 4), (1, 3), (3, 1), (3, 3), (4, 2), (4, 4))),
         "Union failed",
     )
 
-    compose_result = compose(r, s)
+    var compose_result = compose(r, s)
     debug_assert(
         compose_result == RelationList(List((3, 3), (3, 4))), "Compose failed"
     )
 
-    transitive_result = transitive_cl(r)
+    var transitive_result = transitive_cl(r)
     debug_assert(
         transitive_result
         == RelationList(
@@ -79,7 +79,7 @@ def test_functions():
         "Transitive failed",
     )
 
-    reflexive_result = reflexive_cl(r)
+    var reflexive_result = reflexive_cl(r)
     debug_assert(
         reflexive_result
         == RelationList(
@@ -91,7 +91,7 @@ def test_functions():
     print("All tests passed")
 
 
-def apply_operation(
+fn apply_operation(
     operation: Variant[
         fn (
             RelationList, RelationList
@@ -107,5 +107,10 @@ def apply_operation(
             fn (RelationList, RelationList) -> RelationList
         ]()(relation1, relation2.take[RelationList]())
 
-def main():
-    test_functions()
+fn main():
+    try:
+        test_functions()
+    except e:
+        print(e)
+    finally:
+        print("Done")
