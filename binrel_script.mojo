@@ -11,7 +11,7 @@ var s: RelationList = RelationList(List((1, 3), (1, 4), (3, 1), (3, 3)))
 # Target List
 var target: RelationList = RelationList(List((3, 4)))
 
-alias DEPTH: Int8 = 20
+alias DEPTH: Int8 = 30
 alias DEBUG: Bool = False
 
 fn debug(message: String) -> None:
@@ -59,8 +59,9 @@ fn brute_force_relations() -> List[QueueEntry]:
     var check_count: Int8 = 0
     while not queue.empty():
         check_queue = queue
-        debug(String(queue) + "\n")
+        # print(String(queue) + "\n")
         for entry1 in queue.items():
+            print(String(entry1[]))
             var rel1 = entry1[].relation
             var rel1_path = entry1[].path
             var rel1_depth = entry1[].depth
@@ -68,40 +69,34 @@ fn brute_force_relations() -> List[QueueEntry]:
                 # Apply operations that require two relations
                 if op[].key == "compose" or op[].key == "union":
                     for entry2 in queue.items():
-                        var rel2 = entry2[].relation
-                        var rel2_path = entry2[].path
                         var rel2_depth = entry2[].depth
- 
-                        try:
-                            debug(op[].key, rel1, rel2)
-                            var result_relation = op[].value(
-                                rel1, rel2
-                            )
-                            debug(result_relation)
-                            if result_relation == target:
-                                results.add(
-                                    QueueEntry(result_relation, rel1_depth + rel2_depth + 1, op[].key + "(" + rel1_path + ", " + rel2_path + ")")
+                        if not (rel1_depth + rel2_depth + 1) > DEPTH:
+                            var rel2 = entry2[].relation
+                            var rel2_path = entry2[].path
+                            try:
+                                debug(op[].key, rel1, rel2)
+                                var result_relation = op[].value(
+                                    rel1, rel2
                                 )
-                            else:
-                                queue.append(
-                                    QueueEntry(result_relation, rel1_depth + rel2_depth + 1, op[].key + "(" + rel1_path + ", " + rel2_path + ")")
-                                )
-                        except Error:
-                            continue
+                                debug(result_relation)
+                                var entry = QueueEntry(result_relation, rel1_depth + rel2_depth + 1, op[].key + "(" + rel1_path + ", " + rel2_path + ")")
+                                if result_relation == target:
+                                    results.add(entry)
+                                else:
+                                    queue.append(entry)
+                            except Error:
+                                continue
                 # Apply unary operations (such as transitive and reflexive closures)
                 elif op[].key == "transitive_cl" or op[].key == "reflexive_cl":
                     try:
                         debug(op[].key, rel1)
                         var result_relation = Operation.apply_operation(op[].value, rel1, rel1)
                         debug(result_relation)
+                        var entry = QueueEntry(result_relation, rel1_depth + 1, op[].key + "(" + rel1_path + ")")
                         if result_relation == target:
-                            results.add(
-                                QueueEntry(result_relation, rel1_depth + 1, op[].key + "(" + rel1_path + ")")
-                            )
+                            results.add(entry)
                         else:
-                            queue.append(
-                                QueueEntry(result_relation, rel1_depth + 1, op[].key + "(" + rel1_path + ")")
-                            )
+                            queue.append(entry)
                     except Error:
                         continue
                 # try:
@@ -112,7 +107,7 @@ fn brute_force_relations() -> List[QueueEntry]:
         if check_queue == queue:
             # print("No new relations found.")
             # break
-            if check_count > 1:
+            if check_count > 2:
                 print("No new relations found.")
                 break
             check_count += 1

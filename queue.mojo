@@ -1,5 +1,6 @@
 from relation import RelationList, Relation
 from collections import Set
+from algorithm.sort import sort
 
 struct QueueEntry(KeyElement):
     var relation: RelationList
@@ -35,11 +36,14 @@ struct QueueEntry(KeyElement):
         return not self.__eq__(other)
 
     fn __str__(self) -> String:
+        var depth = String(self.depth)
+        if self.depth < 10:
+            depth = " " + depth
         return (
-            "Relation: "
+            "Depth: "
+            + depth
+            + ", Relation: "
             + String(self.relation)
-            + ", Depth: "
-            + String(self.depth)
             + ", Path: "
             + self.path
         )
@@ -143,10 +147,20 @@ struct Queue:
     fn pop(inout self) raises -> QueueEntry:
         return self._queue.pop()
 
-    fn items(inout self) -> List[QueueEntry]:
+    @staticmethod
+    fn cmp_fn(a: QueueEntry, b: QueueEntry) capturing -> Bool:
+        if a.depth < b.depth:
+            return True
+        # elif a.depth > b.depth:
+        #     return False
+        else:
+            return False
+
+    fn items(self) -> List[QueueEntry]:
         var list: List[QueueEntry] = List[QueueEntry]()
         for e in self._queue:
             list.append(e[])
+        sort[QueueEntry, self.cmp_fn](list)
         return list
 
     fn remove(inout self, entry: QueueEntry) raises -> None:
