@@ -5,14 +5,15 @@ from binrel.queue import Queue, QueueEntry
 from collections import Set
 
 # Relations
-var r: RelationList = RelationList(List((1, 4), (3, 1), (4, 2), (4, 4)))
-var s: RelationList = RelationList(List((1, 3), (1, 4), (3, 1), (3, 3)))
-var reflexive: RelationList = RelationList(List((1, 1), (2, 2), (3, 3), (4, 4)))
+var r: RelationList = RelationList(List((3, 1), (3, 2), (3, 3), (4, 1)))
+var s: RelationList = RelationList(List((1, 4), (2, 1), (2, 4), (4, 2)))
 
 # Target List
-var target: RelationList = RelationList(List((3, 4)))
+var target: RelationList = RelationList(
+    List((1, 1), (1, 2), (2, 1), (2, 2), (2, 4), (3, 1), (3, 4), (4, 1), (4, 4))
+)
 
-alias DEPTH: Int8 = 50
+alias DEPTH: Int8 = 20
 alias DEBUG: Bool = False
 
 
@@ -50,7 +51,6 @@ fn brute_force_relations() -> List[QueueEntry]:
     var relations: Dict[String, RelationList] = Dict[String, RelationList]()
     relations["R"] = r
     relations["S"] = s
-    relations["reflexive"] = reflexive
 
     var operations: Dict[
         String, fn (RelationList, RelationList) -> RelationList
@@ -59,19 +59,21 @@ fn brute_force_relations() -> List[QueueEntry]:
     operations["+"] = Operation.union
     operations["."] = Operation.compose
     operations["transitive_cl"] = Operation.transitive_cl
-    # operations["reflexive_cl"] = Operation.reflexive_cl
+    operations["reflexive_cl"] = Operation.reflexive_cl
 
     var results: Set[QueueEntry] = List[QueueEntry]()
     var queue: Queue = Queue()
     queue.append(QueueEntry(r, 1, "R"))
     queue.append(QueueEntry(s, 1, "S"))
-    queue.append(QueueEntry(reflexive, 1, "reflexive"))
+    # queue.append(QueueEntry(reflexive, 0, "reflexive"))
 
     # Test all combinations of r and s with operations
     var check_queue: Queue = Queue()
     var check_count: Int8 = 0
     while not queue.empty():
         check_queue = queue
+        if len(results) > 0:
+            break
         # print(String(queue) + "\n")
         for entry1 in queue.items():
             print(String(entry1[]))
@@ -89,10 +91,11 @@ fn brute_force_relations() -> List[QueueEntry]:
                             try:
                                 debug(op[].key, rel1, rel2)
                                 var result_relation = op[].value(rel1, rel2)
+                                var depth = rel1_depth + rel2_depth + 1
                                 debug(result_relation)
                                 var entry = QueueEntry(
                                     result_relation,
-                                    rel1_depth + rel2_depth + 1,
+                                    depth,
                                     "("
                                     + rel1_path
                                     + " "
@@ -101,14 +104,14 @@ fn brute_force_relations() -> List[QueueEntry]:
                                     + rel2_path
                                     + ")",
                                 )
-                                if rel1_path == "reflexive":
-                                    entry.path = "(reflexive_cl" + "(" + rel2_path + "))"
-                                    # entry.depth = rel2_depth + 1
-                                    # if comment out the above line, the code will not work
-                                if rel2_path == "reflexive":
-                                    entry.path = "(reflexive_cl" + "(" + rel1_path + "))"
-                                    # entry.depth = rel1_depth + 1
-                                    # if comment out the above line, the code will not work
+                                # if rel1_path == "reflexive":
+                                #     entry.path = "(reflexive_cl" + "(" + rel2_path + "))"
+                                #     # entry.depth = rel2_depth + 1
+                                #     # if comment out the above line, the code will not work
+                                # if rel2_path == "reflexive":
+                                #     entry.path = "(reflexive_cl" + "(" + rel1_path + "))"
+                                #     # entry.depth = rel1_depth + 1
+                                #     # if comment out the above line, the code will not work
                                 if result_relation == target:
                                     results.add(entry)
                                 else:
@@ -116,7 +119,7 @@ fn brute_force_relations() -> List[QueueEntry]:
                             except Error:
                                 continue
                 # Apply unary operations (such as transitive and reflexive closures)
-                elif op[].key == "transitive_cl" or op[].key == "reflexive_cl" and not rel1_path == "reflexive":
+                elif op[].key == "transitive_cl" or op[].key == "reflexive_cl":
                     try:
                         debug(op[].key, rel1)
                         var result_relation = Operation.apply_operation(

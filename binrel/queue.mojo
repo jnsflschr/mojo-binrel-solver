@@ -1,5 +1,5 @@
 from binrel.relation import RelationList, Relation
-from collections import Set
+from collections import InlinedFixedVector as Vector
 from algorithm.sort import sort
 
 
@@ -65,7 +65,7 @@ struct QueueEntry(KeyElement):
 
     fn __hash__(self) -> Int:
         var rel_hash: Int = hash[RelationList](self.relation)
-        var depth_hash: Int = hash(int[Int8](self.depth))
+        var depth_hash: Int = int[Int8](self.depth)
         return rel_hash + depth_hash
 
     @staticmethod
@@ -79,26 +79,22 @@ struct QueueEntry(KeyElement):
 
 
 struct Queue:
-    var _queue: Set[QueueEntry]
+    var _queue: List[QueueEntry]
 
     fn __init__(inout self):
-        self._queue = Set[QueueEntry]()
+        self._queue = List[QueueEntry]()
 
     fn __init__(inout self, owned other: Queue):
         self = other
 
     fn __copyinit__(inout self, existing: Queue) -> None:
-        self._queue = Set[QueueEntry]()
-        for e in existing._queue:
-            self._queue.add(e[])
+        self._queue = List[QueueEntry](existing._queue)
 
     fn __moveinit__(inout self, owned existing: Queue) -> None:
-        self._queue = Set[QueueEntry]()
-        for e in existing._queue:
-            self._queue.add(e[])
+        self._queue = List[QueueEntry](existing._queue)
 
     fn __len__(self) -> Int:
-        return self._queue.__len__()
+        return len(self._queue)
 
     fn __contains__(self, r: RelationList) -> Bool:
         var found: Bool = False
@@ -108,22 +104,23 @@ struct Queue:
                 break
         return found
 
+    fn findIndex(self, relation: RelationList) -> Int:
+        for i in range(len(self._queue)):
+            if self._queue[i].relation == relation:
+                return i
+        return -1
+
     fn find(self, relation: RelationList) -> QueueEntry:
-        for qe in self._queue:
-            if qe[].relation == relation:
-                return qe[]
-        return QueueEntry(RelationList(), -1, "")
+        var index: Int = self.findIndex(relation)
+        if index == -1:
+            return QueueEntry(RelationList(), -1, "")
+        return self._queue[index]
 
     fn __eq__(self, other: Queue) -> Bool:
-        var list_self = List[QueueEntry]()
-        var list_other = List[QueueEntry]()
         if len(self) != len(other):
             return False
-
-        for e in self._queue:
-            list_self.append(e[])
-        for e in other._queue:
-            list_other.append(e[])
+        var list_self = self._queue
+        var list_other = other._queue
         sort[QueueEntry, QueueEntry.cmp](list_self)
         sort[QueueEntry, QueueEntry.cmp](list_other)
         for i in range(len(list_self)):
@@ -132,22 +129,17 @@ struct Queue:
         return True
 
     fn clear(inout self) -> None:
-        self._queue = Set[QueueEntry]()
+        self._queue = List[QueueEntry]()
 
     fn __append__(inout self, owned entry: QueueEntry) -> None:
         if entry.relation not in self:
             # print("Adding to queue: ", entry.relation, " with depth: ", entry.depth)
-            self._queue.add(entry)
+            self._queue.append(entry)
         else:
-            var existing_entry: QueueEntry = self.find(entry.relation)
-            if existing_entry.depth == -1:
-                return
-            if entry.depth < existing_entry.depth:
-                try:
-                    self._queue.remove(existing_entry)
-                except:
-                    pass
-                self._queue.add(entry)
+            var existing_index: Int = self.findIndex(entry.relation)
+            if entry.depth < self._queue[existing_index].depth:
+                self._queue[existing_index].depth = entry.depth
+                self._queue[existing_index].path = entry.path
 
     fn append(inout self, owned entry: QueueEntry) -> None:
         if entry.relation.empty():
@@ -175,14 +167,12 @@ struct Queue:
         return self._queue.pop()
 
     fn items(self) -> List[QueueEntry]:
-        var list: List[QueueEntry] = List[QueueEntry]()
-        for e in self._queue:
-            list.append(e[])
+        var list = self._queue
         sort[QueueEntry, QueueEntry.cmp](list)
         return list
 
-    fn remove(inout self, entry: QueueEntry) raises -> None:
-        self._queue.remove(entry)
+    # fn remove(inout self, entry: QueueEntry) raises -> None:
+    #     self._queue.remove(entry)
 
     fn max_depth(self) -> Int8:
         var max_depth: Int8 = -1
@@ -192,7 +182,7 @@ struct Queue:
         return max_depth
 
 
-fn test() raises -> None:
+fn test_queue() raises -> None:
     var q: Queue = Queue()
     var r1: RelationList = RelationList(
         List[Tuple[Int, Int]]((1, 2), (2, 3), (3, 4))
@@ -235,17 +225,17 @@ fn test() raises -> None:
     if len(q) != 2 or q.max_depth() != 2:
         raise "queue: append() failed"
 
-    try:
-        q.remove(r1_entry_copy)
-        raise "queue: remove() failed - should not throw exception"
-    except:
-        pass
-    if len(q) != 2:
-        raise "queue: remove() failed - should not remove entry with other depth"
+    # try:
+    #     q.remove(r1_entry_copy)
+    #     raise "queue: remove() failed - should not throw exception"
+    # except:
+    #     pass
+    # if len(q) != 2:
+    #     raise "queue: remove() failed - should not remove entry with other depth"
 
-    q.remove(r1_entry)
-    if len(q) != 1:
-        raise "queue: remove() failed"
+    # q.remove(r1_entry)
+    # if len(q) != 1:
+    #     raise "queue: remove() failed"
 
     q.append(r1_entry)
     var count: Int = 0
@@ -263,10 +253,10 @@ fn test() raises -> None:
     var res = q.find(r1)
     if res.relation != r1 or res.depth != 1:
         raise "queue: find() failed - wrong entry found"
-    q.remove(r1_entry)
-    res = q.find(r1)
-    if res.relation == r1 or res.depth != -1:
-        raise "queue: find() failed - entry should not be found"
+    # q.remove(r1_entry)
+    # res = q.find(r1)
+    # if res.relation == r1 or res.depth != -1:
+    #     raise "queue: find() failed - entry should not be found"
 
     print("queue: all tests passed")
 

@@ -15,7 +15,7 @@ struct Operation:
             for a in r._relations:
                 for b in s._relations:
                     if a[].get(1) == b[].get(0):
-                        c.append((a[].get(0), b[].get(1)))
+                        c.append(Relation((a[].get(0), b[].get(1))))
         except e:
             print(e)
             pass
@@ -35,11 +35,8 @@ struct Operation:
         borrowed r: RelationList, borrowed s: RelationList
     ) -> RelationList:
         var c: RelationList = RelationList()
-        var _r = r
-        var _s = s
-        c.extend(_r)
-        c.extend(_s)
-        # return Operation.compose(r, s)
+        c.extend(r)
+        c.extend(s)
         return c
 
     @staticmethod
@@ -62,13 +59,9 @@ struct Operation:
     @staticmethod
     fn reflexive_cl(c: RelationList) -> RelationList:
         var _c = c
-        _c._relations.add((1,1))
-        _c._relations.add((2,2))
-        _c._relations.add((3,3))
-        _c._relations.add((4,4))
-        # var _mk_set = mk_set
-        # for i in _mk_set:
-        #     _c.extend(RelationList(List((i[], i[]))))
+        var _mk_set = mk_set
+        for i in _mk_set:
+            _c.extend(RelationList(List((i[], i[]))))
         return _c
 
     @staticmethod

@@ -2,32 +2,28 @@ from collections.set import Set
 from algorithm.sort import sort
 
 alias size = 2
+alias type = DType.int8
 
 
 @value
 # @register_passable("trivial")
 struct Relation(Stringable, Copyable, Movable, KeyElement, Sized, Intable):
-    var val: StaticIntTuple[size]
+    var val: SIMD[type, size]
 
+    fn __init__(inout self, _0: Int, _1: Int) -> None:
+        self.val = SIMD[type, size](_0, _1)
 
-    fn __init__(inout self, _0: Int, _1: Int):
-        self.val = StaticIntTuple(StaticTuple[Int, size](_0, _1))
+    fn __init__(inout self, other: Relation) -> None:
+        self.val = other.val
 
+    fn __init__(inout self, other: Tuple[Int, Int]) -> None:
+        self.val = SIMD[type, size](other[0], other[1])
 
-    fn __init__(inout self, other: Relation):
-        self.val = StaticIntTuple(other.val.data)
+    fn __init__(inout self, other: Tuple[SIMD[type, 1], SIMD[type, 1]]) -> None:
+        self.val = SIMD[type, size](other.get[0, Int](), other.get[1, Int]())
 
-
-    fn __init__(inout self):
-        self.val = StaticIntTuple(StaticTuple[Int, size]())
-
-
-    fn __init__(inout self, other: Tuple[Int, Int]):
-        self.val = StaticIntTuple(StaticTuple[Int, size](other[0], other[1]))
-
-
-    fn __init__(inout self, other: StaticTuple[Int, size]):
-        self.val = StaticIntTuple(other)
+    fn __init__(inout self, other: StaticTuple[Int, size]) -> None:
+        self.val = SIMD[type, size](other[0], other[1])
 
     # fn __copyinit__(existing) -> Relation:
     #     # self.val = existing.val
@@ -36,60 +32,51 @@ struct Relation(Stringable, Copyable, Movable, KeyElement, Sized, Intable):
 
     fn __copyinit__(inout self, existing: Relation) -> None:
         # self.val = existing.val
-        var tup = StaticTuple[Int, size](existing.val.data[0], existing.val.data[1])
-        self.val = StaticIntTuple(tup)
+        self.val = existing.val
 
     fn __moveinit__(inout self, owned other: Relation) -> None:
-        self.val = StaticIntTuple(other.val.data)
-
+        self.val = other.val
 
     fn __eq__(self, other: Relation) -> Bool:
         return self.__get__(0) == other.__get__(0) and self.__get__(
             1
         ) == other.__get__(1)
 
-
     fn __ne__(self, other: Relation) -> Bool:
         return not self.__eq__(other)
-
 
     fn __len__(self) -> Int:
         return size
 
-
     fn get(self, index: Int) raises -> Int:
         if index == 0:
-            return self.val[0]
+            return int(self.val[0])
         elif index == 1:
-            return self.val[1]
+            return int(self.val[1])
         else:
             raise Error("Index out of bounds")
 
-
-    fn __get__(self, index: Int) -> Int:
-        var tup: StaticIntTuple[2] = self.val
-        return tup[index]
-
+    fn __get__(self, index: Int) -> SIMD[type, 1]:
+        return self.val[index]
 
     fn __bool__(self) -> Relation:
         return self
 
-
     fn __str__(self) -> String:
         return "(" + String(self.val[0]) + " , " + String(self.val[1]) + ")"
 
-
     fn __hash__(self) -> Int:
-        return hash[Int](int(self))
-    
-    fn __int__ (self) -> Int:
-        return self.val[0] * 10 + self.val[1]
+        return int(self)
+
+    fn __int__(self) -> Int:
+        return int(self.val[0]) * 10 + int(self.val[1])
 
     @staticmethod
     fn cmp_fn(a: Relation, b: Relation) capturing -> Bool:
         return a.val[0] < b.val[0] or (
             a.val[0] == b.val[0] and a.val[1] < b.val[1]
         )
+
 
 struct RelationList(Stringable, Copyable, KeyElement):
     var _relations: Set[Relation]
@@ -237,7 +224,7 @@ struct RelationList(Stringable, Copyable, KeyElement):
         return self._relations.__len__() == 0
 
 
-fn test() raises -> None:
+fn test_relation() raises -> None:
     var r1: RelationList = RelationList(
         List[Tuple[Int, Int]]((1, 2), (2, 3), (3, 4))
     )
