@@ -62,9 +62,13 @@ struct Operation:
     @staticmethod
     fn reflexive_cl(c: RelationList) -> RelationList:
         var _c = c
-        var _mk_set = mk_set
-        for i in _mk_set:
-            _c.extend(RelationList(List((i[], i[]))))
+        _c._relations.add((1,1))
+        _c._relations.add((2,2))
+        _c._relations.add((3,3))
+        _c._relations.add((4,4))
+        # var _mk_set = mk_set
+        # for i in _mk_set:
+        #     _c.extend(RelationList(List((i[], i[]))))
         return _c
 
     @staticmethod

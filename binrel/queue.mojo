@@ -64,7 +64,9 @@ struct QueueEntry(KeyElement):
         )
 
     fn __hash__(self) -> Int:
-        return hash[RelationList](self.relation) + int[Int8](self.depth)
+        var rel_hash: Int = hash[RelationList](self.relation)
+        var depth_hash: Int = hash(int[Int8](self.depth))
+        return rel_hash + depth_hash
 
     @staticmethod
     fn cmp(a: QueueEntry, b: QueueEntry) capturing -> Bool:
