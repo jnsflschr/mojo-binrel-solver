@@ -14,22 +14,32 @@ var target: RelationList = RelationList(List((3, 4)))
 alias DEPTH: Int8 = 30
 alias DEBUG: Bool = False
 
+
 fn debug(message: String) -> None:
+    @parameter
     if DEBUG:
         print(message)
     return
 
+
 fn debug(relation: RelationList) -> None:
+    @parameter
     if DEBUG:
         print(relation)
     return
 
+
 fn debug(operation: String, relation: RelationList) -> None:
+    @parameter
     if DEBUG:
         print(operation + "(" + relation + ")")
     return
 
-fn debug(operation: String, relation1: RelationList, relation2: RelationList) -> None:
+
+fn debug(
+    operation: String, relation1: RelationList, relation2: RelationList
+) -> None:
+    @parameter
     if DEBUG:
         print(operation + "(" + relation1 + ", " + relation2 + ")")
     return
@@ -44,8 +54,7 @@ fn brute_force_relations() -> List[QueueEntry]:
         String, fn (RelationList, RelationList) -> RelationList
     ] = Dict[String, fn (RelationList, RelationList) -> RelationList]()
 
-    
-    # operations["+"] = Operation.union
+    operations["+"] = Operation.union
     operations["."] = Operation.compose
     operations["transitive_cl"] = Operation.transitive_cl
     operations["reflexive_cl"] = Operation.reflexive_cl
@@ -76,11 +85,19 @@ fn brute_force_relations() -> List[QueueEntry]:
                             var rel2_path = entry2[].path
                             try:
                                 debug(op[].key, rel1, rel2)
-                                var result_relation = op[].value(
-                                    rel1, rel2
-                                )
+                                var result_relation = op[].value(rel1, rel2)
                                 debug(result_relation)
-                                var entry = QueueEntry(result_relation, rel1_depth + rel2_depth + 1, "(" + rel1_path + " " + op[].key + " " + rel2_path + ")")
+                                var entry = QueueEntry(
+                                    result_relation,
+                                    rel1_depth + rel2_depth + 1,
+                                    "("
+                                    + rel1_path
+                                    + " "
+                                    + op[].key
+                                    + " "
+                                    + rel2_path
+                                    + ")",
+                                )
                                 if result_relation == target:
                                     results.add(entry)
                                 else:
@@ -91,9 +108,15 @@ fn brute_force_relations() -> List[QueueEntry]:
                 elif op[].key == "transitive_cl" or op[].key == "reflexive_cl":
                     try:
                         debug(op[].key, rel1)
-                        var result_relation = Operation.apply_operation(op[].value, rel1, rel1)
+                        var result_relation = Operation.apply_operation(
+                            op[].value, rel1, rel1
+                        )
                         debug(result_relation)
-                        var entry = QueueEntry(result_relation, rel1_depth + 1, op[].key + "(" + rel1_path + ")")
+                        var entry = QueueEntry(
+                            result_relation,
+                            rel1_depth + 1,
+                            op[].key + "(" + rel1_path + ")",
+                        )
                         if result_relation == target:
                             results.add(entry)
                         else:
@@ -114,11 +137,12 @@ fn brute_force_relations() -> List[QueueEntry]:
         else:
             check_count = 0
         check_queue.clear()
-    
+
     var res_list: List[QueueEntry] = List[QueueEntry]()
     for res in results:
         res_list.append(res[])
     return res_list
+
 
 fn filter_results(results: List[QueueEntry]) -> List[QueueEntry]:
     var filtered_results: List[QueueEntry] = List[QueueEntry]()

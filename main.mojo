@@ -1,5 +1,6 @@
 from binrel import brute_force_relations, filter_results
 
+
 fn main() -> None:
     var results = brute_force_relations()
     var filtered = filter_results(results)
