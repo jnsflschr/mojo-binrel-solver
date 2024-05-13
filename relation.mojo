@@ -1,4 +1,5 @@
 from collections.set import Set
+from algorithm.sort import sort
 
 struct Relation(Stringable, Copyable, Movable, KeyElement):
     var val: StaticIntTuple[2]
@@ -6,8 +7,8 @@ struct Relation(Stringable, Copyable, Movable, KeyElement):
     fn __init__(inout self, _0: Int, _1: Int):
         self.val = StaticIntTuple(StaticTuple[Int, 2](_0, _1))
 
-    fn __init__(inout self, owned other: Relation):
-        self.val = other.val
+    fn __init__(inout self, other: Relation):
+        self.val = StaticIntTuple(other.val.data)
     
     fn __init__(inout self):
         self.val = StaticIntTuple(StaticTuple[Int, 2]())
@@ -16,7 +17,9 @@ struct Relation(Stringable, Copyable, Movable, KeyElement):
         self.val = StaticIntTuple(StaticTuple[Int, 2](other[0], other[1]))
 
     fn __copyinit__(inout self, existing: Relation) -> None:
-        self.val = existing.val
+        # self.val = existing.val
+        var tup = StaticTuple[Int, 2](existing.val.data[0], existing.val.data[1])
+        self.val = StaticIntTuple(tup)
 
     fn __moveinit__(inout self, owned other: Relation) -> None:
         self.val = other.val
@@ -49,6 +52,10 @@ struct Relation(Stringable, Copyable, Movable, KeyElement):
     
     fn __hash__(self) -> Int:
         return (self.val[0]*10) + self.val[1]
+    
+    @staticmethod
+    fn cmp(a: Relation, b: Relation) capturing -> Bool:
+        return a.val[0] < b.val[0] or (a.val[0] == b.val[0] and a.val[1] < b.val[1])
 
 
 struct RelationList(Stringable, Copyable, KeyElement):
@@ -81,7 +88,8 @@ struct RelationList(Stringable, Copyable, KeyElement):
     fn __copyinit__(inout self, existing: RelationList) -> None:
         self._relations = Set[Relation]()
         for relation in existing._relations:
-            self._relations.add(relation[])
+            var rel = Relation(relation[])
+            self._relations.add(rel)
 
     fn __moveinit__(inout self, owned other: RelationList) -> None:
         self._relations = Set[Relation]()
@@ -141,7 +149,19 @@ struct RelationList(Stringable, Copyable, KeyElement):
         self.__append__(Relation(relation[0], relation[1]))
 
     fn extend(inout self, relations: RelationList) -> None:
-        self._relations = self._relations.union(relations._relations)
+        self._relations.update(relations._relations)
+        # self.update(relations)
+        return
+    
+    fn update (inout self, relations: RelationList) -> None:
+        var list = relations.to_list()
+        var rel_set: Set[Relation] = Set[Relation](list)
+        for relation in relations._relations:
+            rel_set.add(relation[])
+        
+        for relation in rel_set:
+            self._relations.add(relation[])
+        # self._relations
     
     fn extend(inout self, relations: List[Tuple[Int, Int]]) -> None:
         var rel_list: List[Relation] = RelationList.to_list(relations)
@@ -156,10 +176,12 @@ struct RelationList(Stringable, Copyable, KeyElement):
     
     @staticmethod
     fn to_string(list: List[Relation]) -> String:
+        var list_cp: List[Relation] = list
+        sort[Relation, Relation.cmp](list_cp)
         var str: String = "{"
-        for i in range(len(list)):
-            str += String(list[i])
-            if i < len(list) - 1:
+        for i in range(len(list_cp)):
+            str += String(list_cp[i])
+            if i < len(list_cp) - 1:
                 str += ", "
         str += "}"
         return str
@@ -173,7 +195,7 @@ struct RelationList(Stringable, Copyable, KeyElement):
         # for relation in self._relations:
         #     hash += relation[].__hash__()
         # return hash
-        return hash(self._relations)
+        return hash[Set[Relation]](self._relations)
     
     fn empty(self) -> Bool:
         return self._relations.__len__() == 0

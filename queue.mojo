@@ -57,6 +57,15 @@ struct QueueEntry(KeyElement):
     
     fn __hash__(self) -> Int:
         return hash[RelationList](self.relation) + int[Int8](self.depth)
+    
+    @staticmethod
+    fn cmp(a: QueueEntry, b: QueueEntry) capturing -> Bool:
+        if a.depth < b.depth:
+            return True
+        # elif a.depth > b.depth:
+        #     return False
+        else:
+            return False
 
 
 struct Queue:
@@ -96,11 +105,19 @@ struct Queue:
         return QueueEntry(RelationList(), -1, "")
     
     fn __eq__(self, other: Queue) -> Bool:
+        var list_self = List[QueueEntry]()
+        var list_other = List[QueueEntry]()
+        if len(self) != len(other):
+            return False
+        
         for e in self._queue:
-            if e[] not in other._queue:
-                return False
+            list_self.append(e[])
         for e in other._queue:
-            if e[] not in self._queue:
+            list_other.append(e[])
+        sort[QueueEntry, QueueEntry.cmp](list_self)
+        sort[QueueEntry, QueueEntry.cmp](list_other)
+        for i in range(len(list_self)):
+            if list_self[i] != list_other[i]:
                 return False
         return True
     
@@ -115,7 +132,7 @@ struct Queue:
             var existing_entry: QueueEntry = self.find(entry.relation)
             if existing_entry.depth == -1:
                 return
-            if existing_entry.depth > entry.depth:
+            if entry.depth < existing_entry.depth:
                 try:
                     self._queue.remove(existing_entry)
                 except:
@@ -147,20 +164,11 @@ struct Queue:
     fn pop(inout self) raises -> QueueEntry:
         return self._queue.pop()
 
-    @staticmethod
-    fn cmp_fn(a: QueueEntry, b: QueueEntry) capturing -> Bool:
-        if a.depth < b.depth:
-            return True
-        # elif a.depth > b.depth:
-        #     return False
-        else:
-            return False
-
     fn items(self) -> List[QueueEntry]:
         var list: List[QueueEntry] = List[QueueEntry]()
         for e in self._queue:
             list.append(e[])
-        sort[QueueEntry, self.cmp_fn](list)
+        sort[QueueEntry, QueueEntry.cmp](list)
         return list
 
     fn remove(inout self, entry: QueueEntry) raises -> None:
