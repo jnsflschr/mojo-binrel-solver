@@ -1,4 +1,4 @@
-from relation import RelationList, Relation
+from binrel.relation import RelationList, Relation
 from collections import Set
 from algorithm.sort import sort
 
@@ -248,11 +248,11 @@ fn test() raises -> None:
 
     print("queue: all tests passed")
 
-fn main():
-    try: 
-        test()
-    except e: 
-        print(e)
-        pass
-    finally:
-        print("Done")
+# fn main():
+#     try: 
+#         test()
+#     except e: 
+#         print(e)
+#         pass
+#     finally:
+#         print("Done")

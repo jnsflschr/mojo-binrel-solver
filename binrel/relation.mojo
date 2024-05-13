@@ -1,6 +1,7 @@
 from collections.set import Set
 from algorithm.sort import sort
 
+
 struct Relation(Stringable, Copyable, Movable, KeyElement):
     var val: StaticIntTuple[2]
 
@@ -246,11 +247,11 @@ fn test() raises -> None:
     print("relations: all tests passed")
 
 
-fn main() -> None:
-    try:
-        test()
-    except e:
-        print(e)
-        pass
-    finally:
-        print("Done")
+# fn main() -> None:
+#     try:
+#         test()
+#     except e:
+#         print(e)
+#         pass
+#     finally:
+#         print("Done")

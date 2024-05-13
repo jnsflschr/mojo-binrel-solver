@@ -1,12 +1,12 @@
 from utils import Variant
-from relation import RelationList, Relation
+from binrel.relation import RelationList, Relation
 from testing import assert_true, assert_false, assert_raises
 
 alias mk_set: List[Int] = List(1, 2, 3, 4)
 
 struct Operation:
     @staticmethod
-    fn compose(r: RelationList, s: RelationList) -> RelationList:
+    fn compose(borrowed r: RelationList, borrowed s: RelationList) -> RelationList:
         var c: RelationList = RelationList()
         try:
             for a in r._relations:
@@ -19,14 +19,14 @@ struct Operation:
         return c
 
     @staticmethod
-    fn union_rel(r: RelationList, s: RelationList) -> RelationList:
+    fn union_rel(borrowed r: RelationList, borrowed s: RelationList) -> RelationList:
         var c: RelationList = RelationList()
         c.extend(r)
         c.extend(s)
         return c
 
     @staticmethod
-    fn union(r: RelationList, s: RelationList) -> RelationList:
+    fn union(borrowed r: RelationList, borrowed s: RelationList) -> RelationList:
         var c: RelationList = RelationList()
         var _r = r
         var _s = s
@@ -36,7 +36,7 @@ struct Operation:
         return c
 
     @staticmethod
-    fn transitive_cl(c: RelationList) -> RelationList:
+    fn transitive_cl(borrowed c: RelationList) -> RelationList:
         var _c: RelationList = c
         var _mk_set: List[Int] = mk_set
         for i in _mk_set:
@@ -47,7 +47,7 @@ struct Operation:
         return _c
 
     @staticmethod
-    fn transitive_cl(c: RelationList, d: RelationList) -> RelationList:
+    fn transitive_cl(borrowed c: RelationList, borrowed d: RelationList) -> RelationList:
         return Operation.transitive_cl(c)
 
     @staticmethod
@@ -122,12 +122,12 @@ def test_operations():
 
     print("operations: all tests passed")
 
-fn main():
-    try:
-        with assert_raises():
-            test_operations()
-    except e:
-        print(e)
-        pass
-    finally:
-        print("Done")
+# fn main():
+#     try:
+#         with assert_raises():
+#             test_operations()
+#     except e:
+#         print(e)
+#         pass
+#     finally:
+#         print("Done")

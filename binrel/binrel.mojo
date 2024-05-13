@@ -1,7 +1,7 @@
 from utils import Variant
-from relation import RelationList, Relation
-from operations import Operation
-from queue import Queue, QueueEntry
+from binrel.relation import RelationList, Relation
+from binrel.operations import Operation
+from binrel.queue import Queue, QueueEntry
 from collections import Set
 
 # Relations
@@ -45,7 +45,7 @@ fn brute_force_relations() -> List[QueueEntry]:
     ] = Dict[String, fn (RelationList, RelationList) -> RelationList]()
 
     
-    operations["+"] = Operation.union
+    # operations["+"] = Operation.union
     operations["."] = Operation.compose
     operations["transitive_cl"] = Operation.transitive_cl
     operations["reflexive_cl"] = Operation.reflexive_cl
@@ -130,18 +130,3 @@ fn filter_results(results: List[QueueEntry]) -> List[QueueEntry]:
                 filtered_results.clear()
                 filtered_results.append(result[])
     return filtered_results
-
-fn main() -> None:
-    var results = brute_force_relations()
-    var filtered = filter_results(results)
-
-    # Test all combinations of r and s with operations
-
-    # Display all results that match the target
-    if len(results) == 0:
-        print("No matching relations found.")
-    else:
-        for result in results:
-            print("Relation found with: " + String(result[]))
-        for result in filtered:
-            print("Best relation found with: " + String(result[]))
